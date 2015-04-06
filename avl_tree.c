@@ -8,6 +8,9 @@
 
 #define max(a,b) a>b?a:b
 
+struct node* rightRotate(struct node*);
+struct node *leftRotate(struct node*);
+struct node* insert(struct node*, int);
 
 struct node{
    struct node* right;
@@ -33,42 +36,114 @@ struct node* createNode(int value){
 
 int printPreOrder(struct node* root){
    if(root!=NULL){
-      printf("%d ", root->key);
+      printf("%d ", root->value);
       printPreOrder(root->left);
       printPreOrder(root->right);
    }
 }
 
-/*The vital functions follow*/
+/*The core functions follow*/
 
 int findBalance(struct node* node){
    if(node == NULL)
       return 0;
-   return height(node->left) - height(node->right);
+   return getHeight(node->left) - getHeight(node->right);
 }
 
-int insert(struct node* node, int value){
+
+
+struct node* insert(struct node* node, int value){
    if(!node)
       return createNode(value);
 
-   if(value<root->value)
-      root->left = insert(root->left, value);
+   if(value<node->value)
+      node->left = insert(node->left, value);
    else
-      root->right = insert(root->right, value);
+      node->right = insert(node->right, value);
 
-   root->height = max(getHeight(root->left), getHeight(root->right)) + 1;
+   node->height = max(getHeight(node->left), getHeight(node->right)) + 1;
 
-   int balance = findBalance(root);
+   int balance = findBalance(node);
 
    //RR ROTATION: Root->height: 2 or more 
    if(balance > 1 && value < node->left->value)
-      return rightRotate(root);
+      return rightRotate(node);
    //LL ROTATION: Root->height: -2 0r less
-   else if(balance < 1 && value < node->right->value)
-      return leftRotate(
+   else if(balance < -1 && value < node->right->value)
+      return leftRotate(node);
+   //RL ROTATION
+
+   else if(balance > 1 && value > node->left->value){
+      node->left = leftRotate(node->left);
+      return rightRotate(node);
+   }
+   //LR ROTATION
+   else if(balance < -1 && value < node->right->value){
+      node->right = rightRotate(node->right);
+      return leftRotate(node);
+   }
+
+   return node;
 }
 
 
-struct node* rightRotate(struct node* ptr){
-   
+struct node* rightRotate(struct node* y){
+   struct node* x = y->left;
+   struct node* temp = y->right;
+
+   //Rotation
+   x->right = y;
+   y->left  = temp;
+
+   //Update Heights
+   x->height = max(getHeight(x->left), getHeight(x->right)) +1;
+   y->height = max(getHeight(y->left), getHeight(y->right)) +1;
+
+   return x;
+
 }
+
+struct node *leftRotate(struct node *x){
+    struct node *y = x->right;
+    struct node *temp = y->left;
+ 
+    //Rotation
+    y->left = x;
+    x->right = temp;
+ 
+    //Update heights
+    x->height = max(getHeight(x->left), getHeight(x->right))+1;
+    y->height = max(getHeight(y->left), getHeight(y->right))+1;
+ 
+    
+    return y;
+}
+
+/*Test Driver*/
+
+int main(){
+  struct node *root = NULL;
+ 
+  
+  root = insert(root, 10);
+  root = insert(root, 20);
+  root = insert(root, 30);
+  root = insert(root, 40);
+  root = insert(root, 50);
+  root = insert(root, 25);
+ 
+  /* The constructed AVL Tree would be
+            30
+           /  \
+         20   40
+        /  \     \
+       10  25    50
+  */
+ 
+  printf("Pre order traversal of the constructed AVL tree is \n");
+  printPreOrder(root);
+  printf("\n");
+ 
+  return 0;
+}
+
